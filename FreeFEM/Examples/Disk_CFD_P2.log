@@ -1,0 +1,46 @@
+-- FreeFem++ v  4.000000 (date lun. 21 janv. 2019 10:10:16)
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue
+    1 : // Define mesh boundary
+    2 : border C(t=0, 2*pi){x=cos(t); y=sin(t);}
+    3 :
+    4 : // The triangulated domain Th is on the left side of its boundary
+    5 : mesh Th = buildmesh(C(50));
+    6 : 
+    7 : // The finite element space defined over Th is called here Vh
+    8 : fespace Vh(Th, P2);
+    9 : Vh u, v;// Define u and v as piecewise-P1 continuous functions
+   10 :
+   11 : // Define a function f
+   12 : func f= x*y;
+   13 :
+   14 : // Get the clock in second
+   15 : real cpu=clock();
+   16 :
+   17 : // Define the PDE
+   18 : solve Poisson(u, v, solver=LU)
+   19 :     = int2d(Th)(    // The bilinear part
+   20 :           dx(u)*dx(v)
+   21 :         + dy(u)*dy(v)
+   22 :     )
+   23 :     - int2d(Th)(    // The right hand side
+   24 :           f*v
+   25 :     )
+   26 :     + on(C, u=0);Problem : ----------------------------- 360 dim = 2 0x2a47e90
+   // The Dirichlet boundary condition
+   27 :
+   28 : // Plot the result
+   29 : plot(u);
+   30 :
+   31 : // Display the total computational time
+   32 : cout << "CPU time = " << (clock()-cpu) << endl; sizestack + 1024 =1920  ( 896 )
+ 
+  --  mesh:  Nb of Triangles =    438, Nb of Vertices 245
+ SumpT=32190
+  SkyLineMatrix: size pL/pU: 927 32190 32190 moy=34.7249
+  -- Solve :
+          min -0.010356  max 0.0103247
+CPU time = 0.027
+times: compile 0.072s, execution 0.034s,  mpirank:0
+ CodeAlloc : nb ptr  2912,  size :392696 mpirank: 0
+Ok: Normal End
+ try getConsole C:\Users\User\Documents\Intern\UROP\FreeFEM\Disk_CFD_P2.edp

@@ -1,0 +1,147 @@
+-- FreeFem++ v  4.000000 (date lun. 21 janv. 2019 10:10:16)
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue
+    1 : // Parameters
+    2 : real R = 5.;
+    3 : real L = 15.;
+    4 : real nu = 1./50.;
+    5 : real nufinal = 1./200.;
+    6 : real cnu = 0.5;
+    7 :
+    8 : real eps = 1e-6;
+    9 :
+   10 : verbosity = 0;
+   11 :
+   12 : // Mesh
+   13 : border cc(t=0, 2*pi){x=cos(t)/2.; y=sin(t)/2.; label=1;}
+   14 : border ce(t=pi/2, 3*pi/2){x=cos(t)*R; y=sin(t)*R; label=1;}
+   15 : border beb(tt=0, 1){real t=tt^1.2; x=t*L; y=-R; label=1;}
+   16 : border beu(tt=1, 0){real t=tt^1.2; x=t*L; y=R; label=1;}
+   17 : border beo(t=-R, R){x=L; y=t; label=0;}
+   18 : border bei(t=-R/4, R/4){x=L/2; y=t; label=0;}
+   19 : mesh Th = buildmesh(cc(-50) + ce(30) + beb(20) + beu(20) + beo(10) + bei(10));
+   20 : // plot(Th);
+   21 :
+   22 : //bounding box for the plot
+   23 : func bb = [[-1,-2],[4,2]];
+   24 :
+   25 : // Fespace
+   26 : fespace Xh(Th, P2);
+   27 : Xh u1, u2;
+   28 : Xh v1, v2;
+   29 : Xh du1, du2;
+   30 : Xh u1p, u2p;
+   31 :
+   32 : fespace Mh(Th,P1);
+   33 : Mh p;
+   34 : Mh q;
+   35 : Mh dp;
+   36 : Mh pp;
+   37 :
+   38 : // Macro
+   39 : macro Grad(u1,u2) [dx(u1), dy(u1), dx(u2),dy(u2)]  )   [dx(u1), dy(u1), dx(u2),dy(u2)] //
+   41 #                         [u1,u2]'*[dx(v2),dy(v2)]]  )   [[u1,u2]'*[dx(v1),dy(v1)],
+   42 :                         [u1,u2]'*[dx(v2),dy(v2)]] //
+   43 : macro div(u1,u2) (dx(u1) + dy(u2))  )   (dx(u1) + dy(u2)) //
+   44 :
+   45 : // Initialization
+   46 : u1 = (x^2+y^2) > 2;
+   47 : u2 = 0;
+   48 :
+   49 : // Viscosity loop
+   50 : while(1){
+   51 :     int n;
+   52 :     real err=0;
+   53 :     // Newton loop
+   54 :     for (n = 0; n < 15; n++){
+   55 :         // Newton
+   56 :         solve Oseen ([du1, du2, dp], [v1, v2, q])
+   57 :             = int2d(Th)(
+   58 :                     nu * (Grad(du1,du2)     [dx(du1), dy(du1), dx(du2),dy(du2)] ' * Grad(v1,v2)     [dx(v1), dy(ÜM‡ïaìøú∆kê[ß>v“Tâv1), dx(v2),dy(v2)] )
+   59 :                 + UgradV(du1,du2, u1, u2)
+   41 :                           [[du1,du2]'*[dx( u1),dy( u1)],
+   41 :                         [du1,du2]'*[dx( u2),dy( u2)]] ' * [v1,v2]
+   60 :                 + UgradV( u1, u2,du1,du2)
+   41 :                           [[ u1, u2]'*[dx(du1),dy(du1)],
+   41 :                         [ u1, u2]'*[dx(du2),dy(du2)]] ' * [v1,v2]
+   61 :                 - div(du1,du2)     (dx(du1) + dy(du2))  * q
+   62 :                 - div(v1,v2)     (dx(v1) + dy(v2))  * dp
+   63 :                 - 1e-8*dp*q //stabilization term
+   64 :             )
+   65 :             - int2d(Th) (
+   66 :                     nu * (Grad(u1,u2)     [dx(u1), dy(u1), dx(u2),dy(u2)] ' * Grad(v1,v2)     [dx(v1), dy(v1), dÜM‡ïaìøú∆kê[ß>v“Tâx(v2),dy(v2)] )
+   67 :                 + UgradV(u1,u2, u1, u2)
+   41 :                           [[u1,u2]'*[dx( u1),dy( u1)],
+   41 :                         [u1,u2]'*[dx( u2),dy( u2)]] ' * [v1,v2]
+   68 :                 - div(u1,u2)     (dx(u1) + dy(u2))  * q
+   69 :                 - div(v1,v2)     (dx(v1) + dy(v2))  * p
+   70 :             )
+   71 :             + on(1, du1=0, du2=0)
+   72 :             ;Problem : ----------------------------- 968 dim = 2 0x42a7210
+ 
+   73 :
+   74 :         u1[] -= du1[];
+   75 :         u2[] -= du2[];
+   76 :         p[] -= dp[];
+   77 :
+   78 :         real Lu1=u1[].linfty, Lu2=u2[].linfty, Lp=p[].linfty;
+   79 :         err = du1[].linfty/Lu1 + du2[].linfty/Lu2 + dp[].linfty/Lp;
+   80 :
+   81 :         cout << n << " err = " << err << " " << eps << " rey = " << 1./nu << endl;
+   82 :         if(err < eps) break; //converge
+   83 :         if( n>3 && err > 10.) break; //blowup
+   84 :     }
+   85 :
+   86 :     if(err < eps){  //converge: decrease $\nu$ (more difficult)
+   87 :         // Plot
+   88 :         plot([u1, u2], wait=1, cmm=" rey = " + 1./nu , coef=0.3);
+   89 :
+   90 :         // Change nu
+   91 :         if( nu == nufinal) break;
+   92 :         if( n < 4) cnu = cnu^1.5; //fast converge => change faster
+   93 :         nu = max(nufinal, nu* cnu); //new viscosity
+   94 :
+   95 :         // Update
+   96 :         u1p = u1;
+   97 :         u2p = u2;
+   98 :         pp = p;
+   99 :     }
+  100 :     else{   //blowup: increase $\nu$ (more simple)
+  101 :         assert(cnu< 0.95); //the method finally blowup
+  102 :
+  103 :         // Recover nu
+  104 :         nu = nu/cnu;
+  105 :         cnu= cnu^(1./1.5); //no conv. => change lower
+  106 :         nu = nu* cnu; //new viscosity
+  107 :         cout << " restart nu = " << nu << " Rey = " << 1./nu << " (cnu = " << cnu << " ) \n";
+  108 :
+  109 :         // Recover a correct solution
+  110 :         u1 = u1p;
+  111 :         u2 = u2p;
+  112 :         p = pp;
+  113 :     }
+  114 : }
+  115 :
+  116 :
+  117 : //Save mesh
+  118 : savemesh(Th,"capacitor.msh"); sizestack + 1024 =5752  ( 4728 )
+ 
+0 err = 3 1e-06 rey = 50
+1 err = 3.39973 1e-06 rey = 50
+2 err = 2.82005 1e-06 rey = 50
+3 err = 0.787008 1e-06 rey = 50
+4 err = 0.263574 1e-06 rey = 50
+5 err = 0.0251927 1e-06 rey = 50
+6 err = 0.000161445 1e-06 rey = 50
+7 err = 1.36514e-08 1e-06 rey = 50
+0 err = 0.481973 1e-06 rey = 100
+1 err = 0.163584 1e-06 rey = 100
+2 err = 0.0117273 1e-06 rey = 100
+3 err = 8.03938e-05 1e-06 rey = 100
+4 err = 4.51774e-09 1e-06 rey = 100
+0 err = 0.586519 1e-06 rey = 200
+1 err = 0.503605 1e-06 rey = 200
+2 err = 0.128864 1e-06 rey = 200
+3 err = 0.0287815 1e-06 rey = 200
+4 err = 0.00122818 1e-06 rey = 200
+5 err = 1.70194e-06 1e-06 rey = 200
+ try getConsole C:\Users\User\Documents\UROP\FreeFEM\Examples\Flow_around_cylinder\NS_FF.edp

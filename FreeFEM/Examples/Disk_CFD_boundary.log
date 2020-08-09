@@ -1,0 +1,17 @@
+-- FreeFem++ v  4.000000 (date lun. 21 janv. 2019 10:10:16)
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue 
+    1 : // Define mesh boundary
+    2 : border C(t=0, 2*pi){x=cos(t); y=sin(t);};
+    3 : border C(t= 2*pi, 0){x=0.3*cos(t); y=0.5*sin(t);} The identifier C exists
+          the existing type is <8E_Border>
+          the new  type is <8E_Border>
+ 
+ Error line number 3, in file C:\Users\User\Documents\Intern\UROP\FreeFEM\Disk_CFD_boundary.edp, before  token }
+ 
+  current line = 3
+Compile error :
+        line number :3, }
+error Compile error :
+        line number :3, }
+ code = 1 mpirank: 0
+ try getConsole C:\Users\User\Documents\Intern\UROP\FreeFEM\Disk_CFD_boundary.edp

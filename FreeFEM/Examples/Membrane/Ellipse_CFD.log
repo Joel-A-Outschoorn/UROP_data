@@ -1,0 +1,46 @@
+-- FreeFem++ v  4.000000 (date lun. 21 janv. 2019 10:10:16)
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue
+    1 : // Parameters for domain
+    2 : real theta = 4.*pi/3.;
+    3 : real a = 2.; //The length of the semimajor axis
+    4 : real b = 1.; //The length of the semiminor axis
+    5 : func z = x;
+ *** Warning  The identifier z hide a Global identifier
+ 
+    6 :
+    7 : // Mesh
+    8 : // border C(t=0., 2*pi){x=a*cos(t); y=b*sin(t);};
+    9 : border Gamma1(t=0., theta){x=a*cos(t); y=b*sin(t);};
+   10 : border Gamma2(t=theta, 2.*pi){x=a*cos(t); y=b*sin(t);};
+   11 : mesh Th = buildmesh(Gamma1(100) + Gamma2(50));
+   12 :
+   13 : plot(Th);
+   14 :
+   15 : // Fespace
+   16 : fespace Vh(Th, P2); //P2 conforming triangular FEM
+   17 : Vh phi, w, f=1;
+   18 :
+   19 : // Solve
+   20 : solve Laplace(phi, w)
+   21 :     = int2d(Th)(
+   22 :           dx(phi)*dx(w)
+   23 :         + dy(phi)*dy(w)
+   24 :     )
+   25 :     - int2d(Th)(
+   26 :           f*w
+   27 :     )
+   28 :     + on(Gamma1, phi=z)
+   29 :     ;Problem : ----------------------------- 496 dim = 2 0x43c5b90
+ 
+   30 :
+   31 : // Plot
+   32 : plot(phi, wait=true, ps="membrane.png"); //Plot phi
+   33 : plot(Th, wait=true, ps="membraneTh.png"); //Plot Thÿ sizestack + 1024 =1896  ( 872 )
+ 
+  --  mesh:  Nb of Triangles =   2592, Nb of Vertices 1372
+  -- Solve :
+          min -2  max 2
+times: compile 0.165s, execution 0.779s,  mpirank:0
+ CodeAlloc : nb ptr  2957,  size :395296 mpirank: 0
+Ok: Normal End
+ try getConsole C:\Users\User\Documents\UROP\FreeFEM\Examples\Membrane\Ellipse_CFD.edp

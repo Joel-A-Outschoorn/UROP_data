@@ -1,0 +1,60 @@
+-- FreeFem++ v  4.000000 (date lun. 21 janv. 2019 10:10:16)
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue
+    1 : // Parameters
+    2 : int C1=99;
+    3 : int C2=98; //could be anything such that !=0 and C1!=C2
+    4 :
+    5 : // Mesh
+    6 : border C0(t=0., 2.*pi){x=5.*cos(t); y=5.*sin(t);}
+    7 :
+    8 : border C11(t=0., 1.){x=1.+t; y=3.; label=C1;}
+    9 : border C12(t=0., 1.){x=2.; y=3.-6.*t; label=C1;}
+   10 : border C13(t=0., 1.){x=2.-t; y=-3.; label=C1;}
+   11 : border C14(t=0., 1.){x=1.; y=-3.+6.*t; label=C1;}
+   12 :
+   13 : border C21(t=0., 1.){x=-2.+t; y=3.; label=C2;}
+   14 : border C22(t=0., 1.){x=-1.; y=3.-6.*t; label=C2;}
+   15 : border C23(t=0., 1.){x=-1.-t; y=-3.; label=C2;}
+   16 : border C24(t=0., 1.){x=-2.; y=-3.+6.*t; label=C2;}
+   17 :
+   18 : // plot(   C0(50) //to see the border of the domain
+   19 : //    + C11(5)+C12(20)+C13(5)+C14(20)
+   20 : //    + C21(-5)+C22(-20)+C23(-5)+C24(-20),
+   21 : //    wait=true, ps="heatexb.eps");
+   22 :
+   23 : // Mesh
+   24 : mesh Th=buildmesh(C0(50)
+   25 :     + C11(5)+C12(20)+C13(5)+C14(20)
+   26 :     + C21(-5)+C22(-20)+C23(-5)+C24(-20));
+   27 :
+   28 : plot(Th,wait=1);
+   29 :
+   30 : // Fespace
+   31 : fespace Vh(Th, P1);
+   32 : Vh u, v;
+   33 : Vh kappa=1 + 2*(x<-1)*(x>-2)*(y<3)*(y>-3);
+   34 :
+   35 : // Solve
+   36 : solve a(u, v)
+   37 :     = int2d(Th)(
+   38 :           kappa*(
+   39 :               dx(u)*dx(v)
+   40 :             + dy(u)*dy(v)
+   41 :         )
+   42 :     )
+   43 :     +on(C0, u=20)
+   44 :     +on(C1, u=60)
+   45 :     ;Problem : ----------------------------- 600 dim = 2 0x43c8360
+ 
+   46 :
+   47 : // Plot
+   48 : plot(u, wait=true, value=true, fill=true, ps="HeatExchanger.eps"); sizestack + 1024 =1760  ( 736 )
+ 
+  --  mesh:  Nb of Triangles =   1134, Nb of Vertices 617
+  -- Solve :
+          min 20  max 60
+times: compile 0.072s, execution 0.117s,  mpirank:0
+ ######## We forget of deleting   -2 Nb pointer,   0Bytes  ,  mpirank 0, memory leak =0
+ CodeAlloc : nb ptr  3158,  size :402608 mpirank: 0
+Ok: Normal End
+ try getConsole C:\Users\User\Documents\Intern\UROP\FreeFEM\Examples\Heat exchanger\Heat_Ex_CFD.edp
